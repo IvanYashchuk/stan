@@ -53,6 +53,7 @@ class model_base : public prob_grad {
    */
   virtual std::string model_name() const = 0;
 
+
   /**
    * Returns the compile information of the model:
    * stanc version and stanc flags used to compile the model.
@@ -60,6 +61,7 @@ class model_base : public prob_grad {
    * @return model name
    */
   virtual std::vector<std::string> model_compile_info() const = 0;
+
 
   /**
    * Set the specified argument to sequence of parameters, transformed
@@ -548,6 +550,8 @@ class model_base : public prob_grad {
       return log_prob(params_r, params_i, msgs);
   }
 
+
+  virtual stan::math::profile_map get_profile() = 0;
   /**
    * Read constrained parameter values from the specified context,
    * unconstrain them, then concatenate the unconstrained sequences
