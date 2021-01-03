@@ -25,6 +25,12 @@ class model_base_interface : public stan::model::model_base {
    */
   virtual ~model_base_interface() {}
 
+  std::vector<std::string> model_compile_info() const override {
+    std::vector<std::string> stanc_info;
+    stanc_info.push_back("custom model");
+    return stanc_info;
+  }
+
   /**
    * Return the log density for the specified unconstrained
    * parameters, without Jacobian and with normalizing constants for
