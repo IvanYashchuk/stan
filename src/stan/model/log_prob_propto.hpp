@@ -2,11 +2,13 @@
 #define STAN_MODEL_LOG_PROB_PROPTO_HPP
 
 #include <stan/math/rev.hpp>
+#include <stan/model/model_base_interface.hpp>
 #include <iostream>
 #include <vector>
 
 namespace stan {
 namespace model {
+namespace internal {
 
 /**
  * Helper function to calculate log probability for
@@ -30,8 +32,9 @@ namespace model {
  * @param[in,out] msgs
  */
 template <bool jacobian_adjust_transform, class M>
-double log_prob_propto(const M& model, std::vector<double>& params_r,
-                       std::vector<int>& params_i, std::ostream* msgs = 0) {
+double log_prob_propto_impl(const M& model, std::vector<double>& params_r,
+                            std::vector<int>& params_i,
+                            std::ostream* msgs = 0) {
   using stan::math::var;
   using std::vector;
   try {
@@ -72,8 +75,8 @@ double log_prob_propto(const M& model, std::vector<double>& params_r,
  * @param[in,out] msgs
  */
 template <bool jacobian_adjust_transform, class M>
-double log_prob_propto(const M& model, Eigen::VectorXd& params_r,
-                       std::ostream* msgs = 0) {
+double log_prob_propto_impl(const M& model, Eigen::VectorXd& params_r,
+                            std::ostream* msgs = 0) {
   using stan::math::var;
   using std::vector;
   vector<int> params_i(0);
@@ -92,6 +95,102 @@ double log_prob_propto(const M& model, Eigen::VectorXd& params_r,
     stan::math::recover_memory();
     throw;
   }
+}
+
+// This is the general template wrapper of log_prob_propto_impl
+template <bool jacobian_adjust_transform, class M, typename Enable = void>
+struct LogProbHelper {
+  static double log_prob_propto(const M& model, std::vector<double>& params_r,
+                                std::vector<int>& params_i,
+                                std::ostream* msgs = 0) {
+    return log_prob_propto_impl<jacobian_adjust_transform, M>(model, params_r,
+                                                              params_i, msgs);
+  }
+
+  static double log_prob_propto(const M& model, Eigen::VectorXd& params_r,
+                                std::ostream* msgs = 0) {
+    return log_prob_propto_impl<jacobian_adjust_transform, M>(model, params_r,
+                                                              msgs);
+  }
+};
+
+// This is the partial template specialization for derived classes of
+// stan::model::model_base_interface
+template <bool jacobian_adjust_transform, class M>
+struct LogProbHelper<jacobian_adjust_transform, M,
+                     typename std::enable_if<std::is_base_of<
+                         stan::model::model_base_interface, M>::value>::type> {
+  static double log_prob_propto(const stan::model::model_base_interface& model,
+                                std::vector<double>& params_r,
+                                std::vector<int>& params_i,
+                                std::ostream* msgs = 0) {
+    if (jacobian_adjust_transform) {
+      return model.log_prob_propto_jacobian(params_r, params_i, msgs);
+    }  // else if !jacobian_adjust_transform
+    return model.log_prob_propto(params_r, params_i, msgs);
+  }
+
+  static double log_prob_propto(const stan::model::model_base_interface& model,
+                                Eigen::VectorXd& params_r,
+                                std::ostream* msgs = 0) {
+    if (jacobian_adjust_transform) {
+      return model.log_prob_propto_jacobian(params_r, msgs);
+    }  // else if !jacobian_adjust_transform
+    return model.log_prob_propto(params_r, msgs);
+  }
+};
+
+}  // namespace internal
+
+/**
+ * Helper function to calculate log probability for
+ * <code>double</code> scalars up to a proportion.
+ *
+ * This implementation calls the model's
+ * <code>log_prob()</code> function with <code>propto=true</code>
+ * and the specified parameter for applying the Jacobian
+ * adjustment for transformed parameters.
+ *
+ * @tparam propto True if calculation is up to proportion
+ * @tparam jacobian_adjust_transform True if the log absolute
+ * Jacobian determinant of inverse parameter transforms is added to
+ * the log probability.
+ * @tparam M Class of model.
+ * @param[in] model Model.
+ * @param[in] params_r Real-valued parameters.
+ * @param[in] params_i Integer-valued parameters.
+ * @param[in,out] msgs
+ */
+template <bool jacobian_adjust_transform, class M>
+double log_prob_propto(const M& model, std::vector<double>& params_r,
+                       std::vector<int>& params_i, std::ostream* msgs = 0) {
+  return internal::LogProbHelper<jacobian_adjust_transform, M>::log_prob_propto(
+      model, params_r, params_i, msgs);
+}
+
+/**
+ * Helper function to calculate log probability for
+ * <code>double</code> scalars up to a proportion.
+ *
+ * This implementation calls the model's
+ * <code>log_prob()</code> function with <code>propto=true</code>
+ * and the specified parameter for applying the Jacobian
+ * adjustment for transformed parameters.
+ *
+ * @tparam propto True if calculation is up to proportion
+ * @tparam jacobian_adjust_transform True if the log absolute
+ * Jacobian determinant of inverse parameter transforms is added to
+ * the log probability.
+ * @tparam M Class of model.
+ * @param[in] model Model.
+ * @param[in] params_r Real-valued parameters.
+ * @param[in,out] msgs
+ */
+template <bool jacobian_adjust_transform, class M>
+double log_prob_propto(const M& model, Eigen::VectorXd& params_r,
+                       std::ostream* msgs = 0) {
+  return internal::LogProbHelper<jacobian_adjust_transform, M>::log_prob_propto(
+      model, params_r, msgs);
 }
 
 }  // namespace model
