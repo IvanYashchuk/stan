@@ -6,7 +6,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-#include <cmath>
 
 class rosenbrock_model : public stan::model::model_base_interface {
  public:
@@ -57,7 +56,7 @@ class rosenbrock_model : public stan::model::model_base_interface {
       double t2 = 1 - x[2 * i];
       f += alpha * t1 * t1 + t2 * t2;
     }
-    return -std::log(f);
+    return -f;
   }
 
   double log_prob(Eigen::VectorXd& params_r,
