@@ -103,7 +103,7 @@ double log_prob_propto_impl(const M& model, Eigen::VectorXd& params_r,
 
 // This is the general template wrapper of log_prob_propto_impl
 template <bool jacobian_adjust_transform, class M, typename Enable = void>
-struct LogProbHelper {
+struct LogProbProptoHelper {
   static double log_prob_propto(const M& model, std::vector<double>& params_r,
                                 std::vector<int>& params_i,
                                 std::ostream* msgs = 0) {
@@ -121,8 +121,8 @@ struct LogProbHelper {
 // This is the partial template specialization for derived classes of
 // stan::model::model_base_interface
 template <bool jacobian_adjust_transform, class M>
-struct LogProbHelper<jacobian_adjust_transform, M,
-                     enable_if_derived_interface_t<M>> {
+struct LogProbProptoHelper<jacobian_adjust_transform, M,
+                           enable_if_derived_interface_t<M>> {
   static double log_prob_propto(const stan::model::model_base_interface& model,
                                 std::vector<double>& params_r,
                                 std::vector<int>& params_i,
@@ -167,8 +167,9 @@ struct LogProbHelper<jacobian_adjust_transform, M,
 template <bool jacobian_adjust_transform, class M>
 double log_prob_propto(const M& model, std::vector<double>& params_r,
                        std::vector<int>& params_i, std::ostream* msgs = 0) {
-  return internal::LogProbHelper<jacobian_adjust_transform, M>::log_prob_propto(
-      model, params_r, params_i, msgs);
+  return internal::LogProbProptoHelper<jacobian_adjust_transform,
+                                       M>::log_prob_propto(model, params_r,
+                                                           params_i, msgs);
 }
 
 /**
@@ -192,8 +193,9 @@ double log_prob_propto(const M& model, std::vector<double>& params_r,
 template <bool jacobian_adjust_transform, class M>
 double log_prob_propto(const M& model, Eigen::VectorXd& params_r,
                        std::ostream* msgs = 0) {
-  return internal::LogProbHelper<jacobian_adjust_transform, M>::log_prob_propto(
-      model, params_r, msgs);
+  return internal::LogProbProptoHelper<jacobian_adjust_transform,
+                                       M>::log_prob_propto(model, params_r,
+                                                           msgs);
 }
 
 }  // namespace model
