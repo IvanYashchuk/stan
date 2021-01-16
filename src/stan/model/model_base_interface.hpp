@@ -270,6 +270,14 @@ class model_base_interface : public stan::model::model_base {
   }
 };
 
+// We want to be able to call specific overloads if model is a derived class of
+// stan::model::model_base_interface
+// Partial template specialization of functions is not possible in C++,
+// therefore we create a helper struct, see for example log_prob_grad.hpp
+// This is an alias needed for partial template specialization
+template <class T>
+using enable_if_derived_interface_t = typename std::enable_if<std::is_base_of<stan::model::model_base_interface, T>::value>::type;
+
 }  // namespace model
 }  // namespace stan
 #endif  // STAN_MODEL_MODEL_BASE_INTERFACE_HPP

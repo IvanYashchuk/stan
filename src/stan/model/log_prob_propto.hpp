@@ -118,8 +118,7 @@ struct LogProbHelper {
 // stan::model::model_base_interface
 template <bool jacobian_adjust_transform, class M>
 struct LogProbHelper<jacobian_adjust_transform, M,
-                     typename std::enable_if<std::is_base_of<
-                         stan::model::model_base_interface, M>::value>::type> {
+                     enable_if_derived_interface_t<M>> {
   static double log_prob_propto(const stan::model::model_base_interface& model,
                                 std::vector<double>& params_r,
                                 std::vector<int>& params_i,

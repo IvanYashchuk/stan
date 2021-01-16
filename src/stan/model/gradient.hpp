@@ -60,9 +60,7 @@ struct GradientHelper {
 };
 
 template <class M>
-struct GradientHelper<M,
-                      typename std::enable_if<std::is_base_of<
-                          stan::model::model_base_interface, M>::value>::type> {
+struct GradientHelper<M, enable_if_derived_interface_t<M>> {
   static void gradient(const stan::model::model_base_interface& model,
                        const Eigen::Matrix<double, Eigen::Dynamic, 1>& x,
                        double& f,
