@@ -13,6 +13,9 @@ class rosenbrock_model : public stan::model::model_base_interface {
 
   virtual ~rosenbrock_model() {}
 
+  using model_base_interface::transform_inits;
+  using model_base_interface::write_array;
+
   std::string model_name() const override { return "rosenbrock_model"; }
 
   void get_param_names(std::vector<std::string>& names) const override {
@@ -79,6 +82,9 @@ class rosenbrock_model : public stan::model::model_base_interface {
                        std::vector<double>& gradient, bool propto,
                        bool jacobian_adjust_transform,
                        std::ostream* msgs) const override {
+    gradient.clear();
+    gradient.resize(num_params_r());
+
     double* x = params_r.data();
     double* g = gradient.data();
     int nn = 1;
@@ -99,6 +105,8 @@ class rosenbrock_model : public stan::model::model_base_interface {
   double log_prob_grad(Eigen::VectorXd& params_r, Eigen::VectorXd& gradient,
                        bool propto, bool jacobian_adjust_transform,
                        std::ostream* msgs) const override {
+    gradient.resize(num_params_r());
+
     double* x = params_r.data();
     double* g = gradient.data();
     int nn = 1;
@@ -120,7 +128,7 @@ class rosenbrock_model : public stan::model::model_base_interface {
                        std::vector<double>& params_r,
                        std::ostream* msgs) const override {
     params_r.clear();
-    params_r.reserve(num_params_r());
+    params_r.resize(num_params_r());
 
     std::vector<double> xy_vector = context.vals_r("xy");
     for (int i = 0; i < num_params_r(); i++) {
@@ -142,6 +150,7 @@ class rosenbrock_model : public stan::model::model_base_interface {
                    bool include_tparams, bool include_gqs,
                    std::ostream* msgs) const override {
     params_constrained_r.clear();
+    params_constrained_r.resize(num_params_r());
     for (int i = 0; i < num_params_r(); i++) {
       params_constrained_r[i] = params_r[i];
     }
