@@ -97,6 +97,10 @@ double log_prob_propto_impl(const M& model, Eigen::VectorXd& params_r,
   }
 }
 
+// Here we want to call specific overloads if model is a derived class of
+// stan::model::model_base_interface partial template specialization of
+// functions is not possible in C++, therefore we create a helper struct
+
 // This is the general template wrapper of log_prob_propto_impl
 template <bool jacobian_adjust_transform, class M, typename Enable = void>
 struct LogProbHelper {

@@ -96,27 +96,10 @@ double log_prob_grad_impl(const M& model, Eigen::VectorXd& params_r,
 // stan::model::model_base_interface partial template specialization of
 // functions is not possible in C++, therefore we create a helper struct
 
-template <bool propto, bool jacobian_adjust_transform>
-double log_prob_grad_interface_impl(
-    const stan::model::model_base_interface& model,
-    std::vector<double>& params_r, std::vector<int>& params_i,
-    std::vector<double>& gradient, std::ostream* msgs = 0) {
-  (void)params_i;  // unused
-  return model.log_prob_grad(params_r, gradient, propto,
-                             jacobian_adjust_transform, msgs);
-}
-
-template <bool propto, bool jacobian_adjust_transform>
-double log_prob_grad_interface_impl(
-    const stan::model::model_base_interface& model, Eigen::VectorXd& params_r,
-    Eigen::VectorXd& gradient, std::ostream* msgs = 0) {
-  return model.log_prob_grad(params_r, gradient, propto,
-                             jacobian_adjust_transform, msgs);
-}
-
+// This is the general template wrapper of log_prob_grad_impl
 template <bool propto, bool jacobian_adjust_transform, class M,
           typename Enable = void>
-struct Helper {
+struct LogProbGradHelper {
   static double log_prob_grad(const M& model, std::vector<double>& params_r,
                               std::vector<int>& params_i,
                               std::vector<double>& gradient,
@@ -133,24 +116,27 @@ struct Helper {
   }
 };
 
+// This is the partial template specialization for derived classes of
+// stan::model::model_base_interface
 template <bool propto, bool jacobian_adjust_transform, class M>
-struct Helper<propto, jacobian_adjust_transform, M,
-              enable_if_derived_interface_t<M>> {
+struct LogProbGradHelper<propto, jacobian_adjust_transform, M,
+                         enable_if_derived_interface_t<M>> {
   static double log_prob_grad(const stan::model::model_base_interface& model,
                               std::vector<double>& params_r,
                               std::vector<int>& params_i,
                               std::vector<double>& gradient,
                               std::ostream* msgs = 0) {
-    return log_prob_grad_interface_impl<propto, jacobian_adjust_transform>(
-        model, params_r, params_i, gradient, msgs);
+    (void)params_i;  // unused
+    return model.log_prob_grad(params_r, gradient, propto,
+                               jacobian_adjust_transform, msgs);
   }
 
   static double log_prob_grad(const stan::model::model_base_interface& model,
                               Eigen::VectorXd& params_r,
                               Eigen::VectorXd& gradient,
                               std::ostream* msgs = 0) {
-    return log_prob_grad_interface_impl<propto, jacobian_adjust_transform>(
-        model, params_r, gradient, msgs);
+    return model.log_prob_grad(params_r, gradient, propto,
+                               jacobian_adjust_transform, msgs);
   }
 };
 }  // namespace internal
@@ -176,8 +162,10 @@ template <bool propto, bool jacobian_adjust_transform, class M>
 double log_prob_grad(const M& model, std::vector<double>& params_r,
                      std::vector<int>& params_i, std::vector<double>& gradient,
                      std::ostream* msgs = 0) {
-  return internal::Helper<propto, jacobian_adjust_transform, M>::log_prob_grad(
-      model, params_r, params_i, gradient, msgs);
+  return internal::LogProbGradHelper<propto, jacobian_adjust_transform,
+                                     M>::log_prob_grad(model, params_r,
+                                                       params_i, gradient,
+                                                       msgs);
 }
 
 /**
@@ -199,8 +187,9 @@ double log_prob_grad(const M& model, std::vector<double>& params_r,
 template <bool propto, bool jacobian_adjust_transform, class M>
 double log_prob_grad(const M& model, Eigen::VectorXd& params_r,
                      Eigen::VectorXd& gradient, std::ostream* msgs = 0) {
-  return internal::Helper<propto, jacobian_adjust_transform, M>::log_prob_grad(
-      model, params_r, gradient, msgs);
+  return internal::LogProbGradHelper<propto, jacobian_adjust_transform,
+                                     M>::log_prob_grad(model, params_r,
+                                                       gradient, msgs);
 }
 
 }  // namespace model

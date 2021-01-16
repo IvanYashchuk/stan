@@ -40,6 +40,11 @@ void gradient_impl(const M& model,
     logger.info(ss);
 }
 
+// Here we want to call specific overloads if model is a derived class of
+// stan::model::model_base_interface partial template specialization of
+// functions is not possible in C++, therefore we create a helper struct
+
+// This is the general template wrapper of gradient_impl
 template <class M, typename Enable = void>
 struct GradientHelper {
   static void gradient(const M& model,
@@ -59,6 +64,8 @@ struct GradientHelper {
   }
 };
 
+// This is the partial template specialization for derived classes of
+// stan::model::model_base_interface
 template <class M>
 struct GradientHelper<M, enable_if_derived_interface_t<M>> {
   static void gradient(const stan::model::model_base_interface& model,
