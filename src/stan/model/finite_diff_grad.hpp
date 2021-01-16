@@ -2,6 +2,7 @@
 #define STAN_MODEL_FINITE_DIFF_GRAD_HPP
 
 #include <stan/callbacks/interrupt.hpp>
+#include <stan/model/log_prob.hpp>
 #include <iostream>
 #include <vector>
 
@@ -39,12 +40,12 @@ void finite_diff_grad(const M& model, stan::callbacks::interrupt& interrupt,
     interrupt();
     perturbed[k] += epsilon;
     double logp_plus
-        = model.template log_prob<propto, jacobian_adjust_transform>(
-            perturbed, params_i, msgs);
+        = stan::model::log_prob<propto, jacobian_adjust_transform, M>(
+            model, perturbed, params_i, msgs);
     perturbed[k] = params_r[k] - epsilon;
     double logp_minus
-        = model.template log_prob<propto, jacobian_adjust_transform>(
-            perturbed, params_i, msgs);
+        = stan::model::log_prob<propto, jacobian_adjust_transform, M>(
+            model, perturbed, params_i, msgs);
     double gradest = (logp_plus - logp_minus) / (2 * epsilon);
     grad[k] = gradest;
     perturbed[k] = params_r[k];

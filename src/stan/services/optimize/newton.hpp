@@ -5,6 +5,7 @@
 #include <stan/callbacks/logger.hpp>
 #include <stan/callbacks/writer.hpp>
 #include <stan/io/var_context.hpp>
+#include <stan/model/log_prob.hpp>
 #include <stan/optimization/newton.hpp>
 #include <stan/services/error_codes.hpp>
 #include <stan/services/util/initialize.hpp>
@@ -52,8 +53,8 @@ int newton(Model& model, const stan::io::var_context& init,
   double lp(0);
   try {
     std::stringstream message;
-    lp = model.template log_prob<false, false>(cont_vector, disc_vector,
-                                               &message);
+    lp = stan::model::log_prob<false, false, Model>(model, cont_vector,
+                                                    disc_vector, &message);
     logger.info(message);
   } catch (const std::exception& e) {
     logger.info("");

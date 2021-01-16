@@ -6,6 +6,7 @@
 #include <stan/io/var_context.hpp>
 #include <stan/io/random_var_context.hpp>
 #include <stan/io/chained_var_context.hpp>
+#include <stan/model/log_prob.hpp>
 #include <stan/model/log_prob_grad.hpp>
 #include <stan/math/prim.hpp>
 #include <chrono>
@@ -125,8 +126,8 @@ std::vector<double> initialize(Model& model, const stan::io::var_context& init,
       // we evaluate the log_prob function with propto=false
       // because we're evaluating with `double` as the type of
       // the parameters.
-      log_prob = model.template log_prob<false, Jacobian>(unconstrained,
-                                                          disc_vector, &msg);
+      log_prob = stan::model::log_prob<false, Jacobian, Model>(
+          model, unconstrained, disc_vector, &msg);
       if (msg.str().length() > 0)
         logger.info(msg);
     } catch (std::domain_error& e) {
