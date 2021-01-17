@@ -64,24 +64,29 @@ struct mock_model : public stan::model::model_base_interface {
     return 40;
   }
 
-  void transform_inits(const stan::io::var_context& context,
-                       std::vector<double>& params_r,
-                       std::ostream* msgs) const override {}
+  void convert_to_unconstrained(const stan::io::var_context& context,
+                                std::vector<double>& params_r,
+                                std::ostream* msgs) const override {}
 
-  void transform_inits(const stan::io::var_context& context,
-                       Eigen::VectorXd& params_r,
-                       std::ostream* msgs) const override {}
+  void convert_to_unconstrained(const stan::io::var_context& context,
+                                Eigen::VectorXd& params_r,
+                                std::ostream* msgs) const override {}
 
-  void write_array(boost::ecuyer1988& base_rng, std::vector<double>& params_r,
-                   std::vector<double>& params_constrained_r, bool include_tparams,
-                   bool include_gqs, std::ostream* msgs) const override {}
+  void convert_to_constrained(boost::ecuyer1988& base_rng,
+                              const std::vector<double>& params_r,
+                              std::vector<double>& params_constrained_r,
+                              bool include_tparams, bool include_gqs,
+                              std::ostream* msgs) const override {}
 
-  void write_array(boost::ecuyer1988& base_rng, Eigen::VectorXd& params_r,
-                   Eigen::VectorXd& params_constrained_r, bool include_tparams,
-                   bool include_gqs, std::ostream* msgs) const override {}
+  void convert_to_constrained(boost::ecuyer1988& base_rng,
+                              const Eigen::VectorXd& params_r,
+                              Eigen::VectorXd& params_constrained_r,
+                              bool include_tparams, bool include_gqs,
+                              std::ostream* msgs) const override {}
 
-  double log_prob_grad(std::vector<double>& params_r, std::vector<double>& gradient,
-                       bool propto, bool jacobian_adjust_transform,
+  double log_prob_grad(std::vector<double>& params_r,
+                       std::vector<double>& gradient, bool propto,
+                       bool jacobian_adjust_transform,
                        std::ostream* msgs) const override {
     return 0;
   }
@@ -114,11 +119,14 @@ TEST(model, modelInterfaceTemplateLogProb) {
   EXPECT_FLOAT_EQ(10, bm.log_prob(params_r_eigen, msgs));
   EXPECT_FLOAT_EQ(1, bm.log_prob(params_r_vector, params_i_vector, msgs));
   EXPECT_FLOAT_EQ(20, bm.log_prob_jacobian(params_r_eigen, msgs));
-  EXPECT_FLOAT_EQ(2, bm.log_prob_jacobian(params_r_vector, params_i_vector, msgs));
+  EXPECT_FLOAT_EQ(2,
+                  bm.log_prob_jacobian(params_r_vector, params_i_vector, msgs));
   EXPECT_FLOAT_EQ(30, bm.log_prob_propto(params_r_eigen, msgs));
-  EXPECT_FLOAT_EQ(3, bm.log_prob_propto(params_r_vector, params_i_vector, msgs));
+  EXPECT_FLOAT_EQ(3,
+                  bm.log_prob_propto(params_r_vector, params_i_vector, msgs));
   EXPECT_FLOAT_EQ(40, bm.log_prob_propto_jacobian(params_r_eigen, msgs));
-  EXPECT_FLOAT_EQ(4, bm.log_prob_propto_jacobian(params_r_vector, params_i_vector, msgs));
+  EXPECT_FLOAT_EQ(
+      4, bm.log_prob_propto_jacobian(params_r_vector, params_i_vector, msgs));
 
   // test template version from base class;  not callable from mock_model
   // because templated class functions are not inherited
@@ -132,12 +140,16 @@ TEST(model, modelInterfaceTemplateLogProb) {
   double v4 = bm.template log_prob<true, true>(params_r_eigen, msgs);
   EXPECT_FLOAT_EQ(40, v4);
 
-  double v5 = bm.template log_prob<false, false>(params_r_vector, params_i_vector, msgs);
+  double v5 = bm.template log_prob<false, false>(params_r_vector,
+                                                 params_i_vector, msgs);
   EXPECT_FLOAT_EQ(1, v5);
-  double v6 = bm.template log_prob<false, true>(params_r_vector, params_i_vector, msgs);
+  double v6 = bm.template log_prob<false, true>(params_r_vector,
+                                                params_i_vector, msgs);
   EXPECT_FLOAT_EQ(2, v6);
-  double v7 = bm.template log_prob<true, false>(params_r_vector, params_i_vector, msgs);
+  double v7 = bm.template log_prob<true, false>(params_r_vector,
+                                                params_i_vector, msgs);
   EXPECT_FLOAT_EQ(3, v7);
-  double v8 = bm.template log_prob<true, true>(params_r_vector, params_i_vector, msgs);
+  double v8 = bm.template log_prob<true, true>(params_r_vector, params_i_vector,
+                                               msgs);
   EXPECT_FLOAT_EQ(4, v8);
 }

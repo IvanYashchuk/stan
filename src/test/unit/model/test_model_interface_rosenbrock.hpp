@@ -13,9 +13,6 @@ class rosenbrock_model : public stan::model::model_base_interface {
 
   virtual ~rosenbrock_model() {}
 
-  using model_base_interface::transform_inits;
-  using model_base_interface::write_array;
-
   std::string model_name() const override { return "rosenbrock_model"; }
 
   void get_param_names(std::vector<std::string>& names) const override {
@@ -124,9 +121,9 @@ class rosenbrock_model : public stan::model::model_base_interface {
     return -f;
   }
 
-  void transform_inits(const stan::io::var_context& context,
-                       std::vector<double>& params_r,
-                       std::ostream* msgs) const override {
+  void convert_to_unconstrained(const stan::io::var_context& context,
+                                std::vector<double>& params_r,
+                                std::ostream* msgs) const override {
     params_r.clear();
     params_r.resize(num_params_r());
 
@@ -136,19 +133,20 @@ class rosenbrock_model : public stan::model::model_base_interface {
     }
   }
 
-  void transform_inits(const stan::io::var_context& context,
-                       Eigen::VectorXd& params_r,
-                       std::ostream* msgs) const override {
+  void convert_to_unconstrained(const stan::io::var_context& context,
+                                Eigen::VectorXd& params_r,
+                                std::ostream* msgs) const override {
     std::vector<double> xy_vector = context.vals_r("xy");
     for (int i = 0; i < num_params_r(); i++) {
       params_r[i] = xy_vector[i];
     }
   }
 
-  void write_array(boost::ecuyer1988& base_rng, std::vector<double>& params_r,
-                   std::vector<double>& params_constrained_r,
-                   bool include_tparams, bool include_gqs,
-                   std::ostream* msgs) const override {
+  void convert_to_constrained(boost::ecuyer1988& base_rng,
+                              const std::vector<double>& params_r,
+                              std::vector<double>& params_constrained_r,
+                              bool include_tparams, bool include_gqs,
+                              std::ostream* msgs) const override {
     params_constrained_r.clear();
     params_constrained_r.resize(num_params_r());
     for (int i = 0; i < num_params_r(); i++) {
@@ -156,9 +154,11 @@ class rosenbrock_model : public stan::model::model_base_interface {
     }
   }
 
-  void write_array(boost::ecuyer1988& base_rng, Eigen::VectorXd& params_r,
-                   Eigen::VectorXd& params_constrained_r, bool include_tparams,
-                   bool include_gqs, std::ostream* msgs) const override {
+  void convert_to_constrained(boost::ecuyer1988& base_rng,
+                              const Eigen::VectorXd& params_r,
+                              Eigen::VectorXd& params_constrained_r,
+                              bool include_tparams, bool include_gqs,
+                              std::ostream* msgs) const override {
     params_constrained_r = params_r;
   }
 };

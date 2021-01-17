@@ -18,7 +18,8 @@ class model_base_interface : public stan::model::model_base {
    *
    * @param[in] num_params_r number of real unconstrained parameters
    */
-  explicit model_base_interface(size_t num_params_r) : model_base(num_params_r) {}
+  explicit model_base_interface(size_t num_params_r)
+      : model_base(num_params_r) {}
 
   /**
    * Destructor.  This class has a no-op destructor.
@@ -41,10 +42,10 @@ class model_base_interface : public stan::model::model_base {
    * @return log density for specified parameters
    */
   virtual double log_prob(std::vector<double>& params_r,
-                         std::ostream* msgs) const = 0;
+                          std::ostream* msgs) const = 0;
 
   virtual double log_prob(Eigen::VectorXd& params_r,
-                         std::ostream* msgs) const override = 0;
+                          std::ostream* msgs) const override = 0;
 
   /**
    * Return the log density for the specified unconstrained
@@ -55,18 +56,20 @@ class model_base_interface : public stan::model::model_base {
    * @param[in,out] msgs message stream
    * @param[in] propto `true` if normalizing constants should be dropped
    * and result returned up to an additive constant
-   * @param[in] jacobian_adjust_transform `true` if the log Jacobian adjustment is
-   * included for the change of variables from unconstrained to
-   * constrained parameters.
+   * @param[in] jacobian_adjust_transform `true` if the log Jacobian adjustment
+   * is included for the change of variables from unconstrained to constrained
+   * parameters.
    * @return log density for specified parameters
    */
-  virtual double log_prob_grad(std::vector<double>& params_r, std::vector<double>& gradient,
-                         bool propto, bool jacobian_adjust_transform,
-                         std::ostream* msgs) const = 0;
+  virtual double log_prob_grad(std::vector<double>& params_r,
+                               std::vector<double>& gradient, bool propto,
+                               bool jacobian_adjust_transform,
+                               std::ostream* msgs) const = 0;
 
-  virtual double log_prob_grad(Eigen::VectorXd& params_r, Eigen::VectorXd& gradient,
-                         bool propto, bool jacobian_adjust_transform,
-                         std::ostream* msgs) const = 0;
+  virtual double log_prob_grad(Eigen::VectorXd& params_r,
+                               Eigen::VectorXd& gradient, bool propto,
+                               bool jacobian_adjust_transform,
+                               std::ostream* msgs) const = 0;
 
   /**
    * Return the log density for the specified unconstrained
@@ -78,12 +81,12 @@ class model_base_interface : public stan::model::model_base {
    * @return log density for specified parameters
    */
   virtual double log_prob_jacobian(std::vector<double>& params_r,
-                                  std::ostream* msgs) const {
+                                   std::ostream* msgs) const {
     return log_prob(params_r, msgs);
   }
 
   virtual double log_prob_jacobian(Eigen::VectorXd& params_r,
-                                  std::ostream* msgs) const override {
+                                   std::ostream* msgs) const override {
     return log_prob(params_r, msgs);
   }
 
@@ -97,12 +100,12 @@ class model_base_interface : public stan::model::model_base {
    * @return log density for specified parameters
    */
   virtual double log_prob_propto(std::vector<double>& params_r,
-                                std::ostream* msgs) const {
+                                 std::ostream* msgs) const {
     return log_prob(params_r, msgs);
   }
 
   virtual double log_prob_propto(Eigen::VectorXd& params_r,
-                                std::ostream* msgs)  const override {
+                                 std::ostream* msgs) const override {
     return log_prob(params_r, msgs);
   }
 
@@ -120,12 +123,12 @@ class model_base_interface : public stan::model::model_base {
    * @return log density for specified parameters
    */
   virtual double log_prob_propto_jacobian(std::vector<double>& params_r,
-                                         std::ostream* msgs) const {
+                                          std::ostream* msgs) const {
     return log_prob_jacobian(params_r, msgs);
   }
 
   virtual double log_prob_propto_jacobian(Eigen::VectorXd& params_r,
-                                         std::ostream* msgs) const override {
+                                          std::ostream* msgs) const override {
     return log_prob_jacobian(params_r, msgs);
   }
 
@@ -139,13 +142,13 @@ class model_base_interface : public stan::model::model_base {
    * @param[in,out] params_r unconstrained parameter values produced
    * @param[in,out] msgs stream to which messages are written
    */
-  virtual void transform_inits(const io::var_context& context,
-                               std::vector<double>& params_r,
-                               std::ostream* msgs) const = 0;
+  virtual void convert_to_unconstrained(const io::var_context& context,
+                                        std::vector<double>& params_r,
+                                        std::ostream* msgs) const = 0;
 
-  virtual void transform_inits(const io::var_context& context,
-                               Eigen::VectorXd& params_r,
-                               std::ostream* msgs) const override = 0;
+  virtual void convert_to_unconstrained(const io::var_context& context,
+                                        Eigen::VectorXd& params_r,
+                                        std::ostream* msgs) const = 0;
 
   /**
    * Convert the specified sequence of unconstrained parameters to a
@@ -165,28 +168,31 @@ class model_base_interface : public stan::model::model_base {
    * in output
    * @param[in,out] msgs msgs stream to which messages are written
    */
-  virtual void write_array(boost::ecuyer1988& rng, std::vector<double>& params_r,
-                   std::vector<double>& params_r_constrained,
-                   bool include_tparams = true, bool include_gqs = true,
-                   std::ostream* msgs = 0) const = 0;
+  virtual void convert_to_constrained(boost::ecuyer1988& rng,
+                                      const std::vector<double>& params_r,
+                                      std::vector<double>& params_r_constrained,
+                                      bool include_tparams = true,
+                                      bool include_gqs = true,
+                                      std::ostream* msgs = 0) const = 0;
 
-  virtual void write_array(boost::ecuyer1988& rng, Eigen::VectorXd& params_r,
-                   Eigen::VectorXd& params_r_constrained, bool include_tparams = true,
-                   bool include_gqs = true,
-                   std::ostream* msgs = 0) const override = 0;
+  virtual void convert_to_constrained(boost::ecuyer1988& rng,
+                                      const Eigen::VectorXd& params_r,
+                                      Eigen::VectorXd& params_r_constrained,
+                                      bool include_tparams = true,
+                                      bool include_gqs = true,
+                                      std::ostream* msgs = 0) const = 0;
 
   // Now non-virtual overrides
 
-  double log_prob(std::vector<double>& params_r,
-                  std::vector<int>& params_i,
+  double log_prob(std::vector<double>& params_r, std::vector<int>& params_i,
                   std::ostream* msgs) const override {
     (void)params_i;  // unused
     return log_prob(params_r, msgs);
   }
 
   double log_prob_jacobian(std::vector<double>& params_r,
-                                  std::vector<int>& params_i,
-                                  std::ostream* msgs) const override {
+                           std::vector<int>& params_i,
+                           std::ostream* msgs) const override {
     (void)params_i;  // unused
     return log_prob_jacobian(params_r, msgs);
   }
@@ -205,68 +211,99 @@ class model_base_interface : public stan::model::model_base {
     return log_prob_propto_jacobian(params_r, msgs);
   }
 
-  virtual void transform_inits(const io::var_context& context,
-                               std::vector<int>& params_i,
-                               std::vector<double>& params_r,
-                               std::ostream* msgs) const override {
+  void transform_inits(const io::var_context& context,
+                       std::vector<int>& params_i,
+                       std::vector<double>& params_r,
+                       std::ostream* msgs) const override {
     (void)params_i;  // unused
-    return transform_inits(context, params_r, msgs);
+    return convert_to_unconstrained(context, params_r, msgs);
+  }
+
+  void transform_inits(const io::var_context& context,
+                       Eigen::VectorXd& params_r,
+                       std::ostream* msgs) const override {
+    return convert_to_unconstrained(context, params_r, msgs);
   }
 
   void write_array(boost::ecuyer1988& rng, std::vector<double>& params_r,
-                   std::vector<int>& params_i, std::vector<double>& params_r_constrained,
+                   std::vector<int>& params_i,
+                   std::vector<double>& params_r_constrained,
                    bool include_tparams = true, bool include_gqs = true,
                    std::ostream* msgs = 0) const override {
     (void)params_i;  // unused
-    return write_array(rng, params_r, params_r_constrained, include_tparams, include_gqs, msgs);
+    return convert_to_constrained(rng, params_r, params_r_constrained,
+                                  include_tparams, include_gqs, msgs);
+  }
+
+  void write_array(boost::ecuyer1988& rng, Eigen::VectorXd& params_r,
+                   Eigen::VectorXd& params_r_constrained,
+                   bool include_tparams = true, bool include_gqs = true,
+                   std::ostream* msgs = 0) const override {
+    return convert_to_constrained(rng, params_r, params_r_constrained,
+                                  include_tparams, include_gqs, msgs);
   }
 
   // math::var returns are not supported here
-  // in the future it could be possible to use precomputed_gradients or reverse_pass_callback
+  // in the future it could be possible to use precomputed_gradients or
+  // reverse_pass_callback
 
-  inline math::var log_prob(std::vector<math::var>& theta,
+  math::var log_prob(std::vector<math::var>& theta, std::vector<int>& theta_i,
+                     std::ostream* msgs) const override {
+    throw std::runtime_error(
+        "math::var log_prob(std::vector<math::var>& theta, std::vector<int>& "
+        "theta_i, std::ostream* msgs) is not implemented!");
+  }
+
+  math::var log_prob_jacobian(std::vector<math::var>& theta,
+                              std::vector<int>& theta_i,
+                              std::ostream* msgs) const override {
+    throw std::runtime_error(
+        "math::var log_prob_jacobian(std::vector<math::var>& theta, "
+        "std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
+  }
+
+  math::var log_prob_propto(std::vector<math::var>& theta,
                             std::vector<int>& theta_i,
                             std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob(std::vector<math::var>& theta, std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
+    throw std::runtime_error(
+        "math::var log_prob_propto(std::vector<math::var>& theta, "
+        "std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
   }
 
-  inline math::var log_prob_jacobian(std::vector<math::var>& theta,
+  math::var log_prob_propto_jacobian(std::vector<math::var>& theta,
                                      std::vector<int>& theta_i,
                                      std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_jacobian(std::vector<math::var>& theta, std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
+    throw std::runtime_error(
+        "math::var log_prob_propto_jacobian(std::vector<math::var>& theta, "
+        "std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
   }
 
-  inline math::var log_prob_propto(std::vector<math::var>& theta,
-                                   std::vector<int>& theta_i,
-                                   std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_propto(std::vector<math::var>& theta, std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
+  math::var log_prob(Eigen::Matrix<math::var, -1, 1>& theta,
+                     std::ostream* msgs) const override {
+    throw std::runtime_error(
+        "math::var log_prob(Eigen::Matrix<math::var, -1, 1>& theta, "
+        "std::ostream* msgs) is not implemented!");
   }
 
-  inline math::var log_prob_propto_jacobian(std::vector<math::var>& theta,
-                                            std::vector<int>& theta_i,
-                                            std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_propto_jacobian(std::vector<math::var>& theta, std::vector<int>& theta_i, std::ostream* msgs) is not implemented!");
+  math::var log_prob_jacobian(Eigen::Matrix<math::var, -1, 1>& theta,
+                              std::ostream* msgs) const override {
+    throw std::runtime_error(
+        "math::var log_prob_jacobian(Eigen::Matrix<math::var, -1, 1>& theta, "
+        "std::ostream* msgs) is not implemented!");
   }
 
-  inline math::var log_prob(Eigen::Matrix<math::var, -1, 1>& theta,
+  math::var log_prob_propto(Eigen::Matrix<math::var, -1, 1>& theta,
                             std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob(Eigen::Matrix<math::var, -1, 1>& theta, std::ostream* msgs) is not implemented!");
+    throw std::runtime_error(
+        "math::var log_prob_propto(Eigen::Matrix<math::var, -1, 1>& theta, "
+        "std::ostream* msgs) is not implemented!");
   }
 
-  inline math::var log_prob_jacobian(Eigen::Matrix<math::var, -1, 1>& theta,
+  math::var log_prob_propto_jacobian(Eigen::Matrix<math::var, -1, 1>& theta,
                                      std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_jacobian(Eigen::Matrix<math::var, -1, 1>& theta, std::ostream* msgs) is not implemented!");
-  }
-
-  inline math::var log_prob_propto(Eigen::Matrix<math::var, -1, 1>& theta,
-                                   std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_propto(Eigen::Matrix<math::var, -1, 1>& theta, std::ostream* msgs) is not implemented!");
-  }
-
-  inline math::var log_prob_propto_jacobian(
-      Eigen::Matrix<math::var, -1, 1>& theta,
-      std::ostream* msgs) const override {
-    throw std::runtime_error("math::var log_prob_propto_jacobian(Eigen::Matrix<math::var, -1, 1>& theta, std::ostream* msgs) is not implemented!");
+    throw std::runtime_error(
+        "math::var log_prob_propto_jacobian(Eigen::Matrix<math::var, -1, 1>& "
+        "theta, std::ostream* msgs) is not implemented!");
   }
 };
 
@@ -276,7 +313,8 @@ class model_base_interface : public stan::model::model_base {
 // therefore we create a helper struct, see for example log_prob_grad.hpp
 // This is an alias needed for partial template specialization
 template <class T>
-using enable_if_derived_interface_t = typename std::enable_if<std::is_base_of<stan::model::model_base_interface, T>::value>::type;
+using enable_if_derived_interface_t = typename std::enable_if<
+    std::is_base_of<stan::model::model_base_interface, T>::value>::type;
 
 }  // namespace model
 }  // namespace stan
